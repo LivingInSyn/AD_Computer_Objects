@@ -4,6 +4,9 @@ import logging
 import datetime
 import subprocess
 
+#config
+path_to_ps = "c:\\web_AD\\AD_Computer_Objects\\add_computer.ps1"
+
 #create the logfile
 logging.basicConfig(filename='web_add.log',format='%(asctime)s %(levelname)s:%(message)s',level=logging.INFO)
 logging.info("Starting the server at "+str(datetime.datetime.now()))
@@ -38,7 +41,7 @@ class add:
                 #check all the strings for bad chars
                 if(not check_comp(i.computer) and not check_password(i.password) and not check_name(i.password)):
                         #you may need to change the path here for the location of add_computers.ps1
-                        subprocess.call(["powershell","c:\\web_AD\\add_computer.ps1","-name",i.computer,"-user",i.user,"-pass",i.password,"-enable",en_bool])
+                        subprocess.call(["powershell",path_to_ps,"-name",i.computer,"-user",i.user,"-pass",i.password,"-enable",en_bool])
                         logging.info("Computer named "+i.computer+" added by "+i.user)
                 else:
                         #add error reporting here
