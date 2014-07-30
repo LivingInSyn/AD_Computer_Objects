@@ -8,6 +8,8 @@ import subprocess
 path_to_add = "c:\\web_AD\\AD_Computer_Objects\\add_computer.ps1"
 path_to_check = "c:\\web_AD\\AD_Computer_Objects\\check_user.ps1"
 
+#test-change-comment
+
 
 #create the logfile
 logging.basicConfig(filename='web_add.log',format='%(asctime)s %(levelname)s:%(message)s',level=logging.INFO)
