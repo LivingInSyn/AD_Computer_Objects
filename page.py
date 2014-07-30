@@ -5,7 +5,9 @@ import datetime
 import subprocess
 
 #config
-path_to_ps = "c:\\web_AD\\AD_Computer_Objects\\add_computer.ps1"
+path_to_add = "c:\\web_AD\\AD_Computer_Objects\\add_computer.ps1"
+path_to_check = "c:\\web_AD\\AD_Computer_Objects\\check_user.ps1"
+
 
 #create the logfile
 logging.basicConfig(filename='web_add.log',format='%(asctime)s %(levelname)s:%(message)s',level=logging.INFO)
@@ -30,23 +32,40 @@ class index:
 
 class add:
         def POST(self):
+                allow_add = False
 		#values are computer, user and password and enabled (en_type)
                 #en_type returnes $true or $false
+
                 i = web.input()
+
                 #because the html parser uses $ for variables like powershell, we need to transform the enabled values into strings for powershell
                 if(i.en_type=="en"):
                         en_bool = "$true"
                 else:
                         en_bool = "$false"
-                #check all the strings for bad chars
-                if(not check_comp(i.computer) and not check_password(i.password) and not check_name(i.password)):
-                        #you may need to change the path here for the location of add_computers.ps1
-                        subprocess.call(["powershell",path_to_ps,"-name",i.computer,"-user",i.user,"-pass",i.password,"-enable",en_bool])
+
+                #check for membership of a group
+                member_check = subprocess.Popen(["powershell",path_to_check,"-user",i.user,"-password",i.password], stdout=subprocess.PIPE)
+                out, err = member_check.communicate()
+                        #I had to change the next line to only check the first letter bcause stdout has a newline character on the end that really
+                        #screws you up
+                if(out[0]=="T"):
+                        allow_add = True
+                        
+
+                #check all the strings for bad chars and results of allow_add
+                if(not check_comp(i.computer) and not check_password(i.password) and not check_name(i.password) and allow_add):
+                        subprocess.call(["powershell",path_to_add,"-name",i.computer,"-user",i.user,"-pass",i.password,"-enable",en_bool])
                         logging.info("Computer named "+i.computer+" added by "+i.user)
-                else:
+                elif(not allow_add):
+                        logging.warning("user, "+i.user+" did not pass the credential check")
+                elif(check_comp(i.computer) or check_password(i.password) or check_name(i.password)):
                         #add error reporting here
                         print "bad characters"
                         logging.warning("Bad characters input by "+i.user)
+                else:
+                        logging.info("something went wrong in the checking")
+                        print("something went wrong in the checking")
                 #Right now, bring us back to home without any other output
                 raise web.seeother('/')
 
